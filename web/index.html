@@ -149,6 +149,18 @@
     }
     #micButton.connected svg { stroke: #6fe08e; }
     #micButton.speaking { animation: micPulse 2s ease-in-out infinite; }
+    #audioUnlockButton {
+        display: none;
+        pointer-events: auto;
+        padding: 9px 16px;
+        border: 1px solid #d8ad68;
+        border-radius: 999px;
+        background: rgba(32, 25, 16, 0.88);
+        color: #ffe0a5;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    #audioUnlockButton.show { display: block; }
     @keyframes micPulse {
         0%, 100% { transform: scale(1.0); }
         50%      { transform: scale(1.05); }
@@ -265,6 +277,7 @@
     <div id="toast"></div>
 
     <div id="bottomControls">
+        <button id="audioUnlockButton" type="button">点击开启声音</button>
         <button id="micButton" aria-label="开始对话">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="9" y="2.5" width="6" height="11.5" rx="3"></rect>
@@ -310,6 +323,7 @@ function bootTalkToMe() {
     const statusText = document.getElementById('statusText');
     const toastEl = document.getElementById('toast');
     const micButton = document.getElementById('micButton');
+    const audioUnlockButton = document.getElementById('audioUnlockButton');
     const timerEl = document.getElementById('timer');
     const transcriptEl = document.getElementById('transcript');
     const remoteAudio = document.getElementById('remoteAudio');
@@ -667,7 +681,7 @@ function bootTalkToMe() {
     let audioContext = null;
     let analyser = null;
     let freqData = null;
-    let remoteSourceNode = null;   // createMediaElementSource — once per element
+    let remoteSourceNode = null;
     let micSourceNode = null;
 
     // smoothed levels (never feed raw FFT to the shader)
@@ -686,21 +700,29 @@ function bootTalkToMe() {
         analyser.smoothingTimeConstant = 0.55;
         freqData = new Uint8Array(analyser.frequencyBinCount);
 
-        // remote AI voice (primary, gain 1.0) — element output is rerouted
-        // through the graph, so also connect to destination to stay audible
-        const remoteGain = audioContext.createGain();
-        remoteGain.gain.value = 1.0;
-        try {
-            remoteSourceNode = audioContext.createMediaElementSource(remoteAudio);
-            remoteSourceNode.connect(remoteGain);
-            remoteGain.connect(analyser);
-            remoteGain.connect(audioContext.destination);
-        } catch (err) {
-            console.warn('remote audio analyser hookup failed', err);
-        }
+        // Keep remote playback on the audio element. A suspended AudioContext
+        // must never silence the conversation just to drive the visualizer.
         audioContext._micGain = audioContext.createGain();
         audioContext._micGain.gain.value = 0.3; // local mic, secondary
         audioContext._micGain.connect(analyser); // NOT to destination (no feedback)
+    }
+
+    function connectRemoteToAnalyser(mediaStreamTrack) {
+        disconnectRemoteFromAnalyser();
+        if (!audioContext || !mediaStreamTrack) return;
+        try {
+            remoteSourceNode = audioContext.createMediaStreamSource(new MediaStream([mediaStreamTrack]));
+            remoteSourceNode.connect(analyser);
+        } catch (err) {
+            console.warn('remote audio analyser hookup failed', err);
+        }
+    }
+
+    function disconnectRemoteFromAnalyser() {
+        if (remoteSourceNode) {
+            try { remoteSourceNode.disconnect(); } catch (_) {}
+            remoteSourceNode = null;
+        }
     }
 
     function connectMicToAnalyser(mediaStreamTrack) {
@@ -925,6 +947,26 @@ function bootTalkToMe() {
     let localIdentity = '';
     let livekitReady = false;
 
+    function startRemotePlayback() {
+        remoteAudio.muted = false;
+        remoteAudio.volume = 1;
+        const playback = remoteAudio.play();
+        if (playback && typeof playback.then === 'function') {
+            playback.then(() => audioUnlockButton.classList.remove('show'))
+                .catch((err) => {
+                    console.warn('remote audio playback blocked', err);
+                    audioUnlockButton.classList.add('show');
+                    showToast('点「开启声音」才能听到滕猪猪');
+                });
+        }
+    }
+
+    audioUnlockButton.addEventListener('click', () => {
+        if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+        if (room && typeof room.startAudio === 'function') room.startAudio().catch(console.warn);
+        startRemotePlayback();
+    });
+
     async function connect() {
         if (connected || connecting) return;
         connecting = true;
@@ -954,6 +996,8 @@ function bootTalkToMe() {
                 micButton.classList.remove('connected', 'speaking');
                 stopTimer();
                 disconnectMicFromAnalyser();
+                disconnectRemoteFromAnalyser();
+                audioUnlockButton.classList.remove('show');
                 remoteAudio.srcObject = null;
                 room = null;
             });
@@ -961,16 +1005,14 @@ function bootTalkToMe() {
             room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
                 if (track.kind !== LivekitClient.Track.Kind.Audio) return;
                 track.attach(remoteAudio);
-                remoteAudio.muted = false;
-                const p = remoteAudio.play ? remoteAudio.play() : null;
-                if (p && typeof p.catch === 'function') {
-                    p.catch((err) => console.warn('remote audio autoplay blocked', err));
-                }
+                connectRemoteToAnalyser(track.mediaStreamTrack);
+                startRemotePlayback();
             });
 
             room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track) => {
                 if (track.kind !== LivekitClient.Track.Kind.Audio) return;
                 try { track.detach(remoteAudio); } catch (_) {}
+                disconnectRemoteFromAnalyser();
                 remoteAudio.srcObject = null;
             });
 
@@ -1020,6 +1062,8 @@ function bootTalkToMe() {
         micButton.classList.remove('connected', 'speaking');
         stopTimer();
         disconnectMicFromAnalyser();
+        disconnectRemoteFromAnalyser();
+        audioUnlockButton.classList.remove('show');
     }
 
     micButton.addEventListener('click', () => {
