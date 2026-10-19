@@ -142,6 +142,16 @@ class _OpenAICompatLLMStream(llm.LLMStream):
                 # 阶段 29.1 修复: send_nowait 而不是 send（chan 没 close 的时候 send_nowait 是非阻塞的）
                 self._event_ch.send_nowait(chat_chunk)
         except Exception as exc:
+            if "MiniMax HTTP 402" in str(exc) and "insufficient_balance_error" in str(exc):
+                print("[llm] MiniMax balance exhausted; speaking a clear service message", flush=True)
+                self._event_ch.send_nowait(llm.ChatChunk(
+                    id=request_id,
+                    delta=llm.ChoiceDelta(
+                        role="assistant",
+                        content="我这边的 MiniMax 额度用完了，暂时没法接话。充好额度再来找我吧。",
+                    ),
+                ))
+                return
             print(f"[llm] openai-compat error: {exc!r} (messages={len(messages)})", flush=True)
             raise APIConnectionError(
                 f"openai-compat LLM error: {exc!r}",

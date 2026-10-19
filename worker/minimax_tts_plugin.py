@@ -174,6 +174,17 @@ class _MinimaxChunkedStream(ChunkedStream):
                         request_id=None,
                         body=None,
                     )
+                if "application/json" in resp.headers.get("Content-Type", ""):
+                    payload = await resp.json(content_type=None)
+                    base_resp = payload.get("base_resp") or {}
+                    code = base_resp.get("status_code")
+                    message = base_resp.get("status_msg", "unknown error")
+                    raise APIStatusError(
+                        message=f"MiniMax status_code={code}: {message}",
+                        status_code=402 if code == 1008 else 502,
+                        request_id=None,
+                        body=None,
+                    )
 
                 output_emitter.initialize(
                     request_id=f"minimax-stream-{int(time.time()*1000)}",
@@ -374,6 +385,17 @@ class _MinimaxSynthesizeStream(SynthesizeStream):
                                     status_code=resp.status,
                                     request_id=None,
                                     body=err_text,
+                                )
+                            if "application/json" in resp.headers.get("Content-Type", ""):
+                                payload = await resp.json(content_type=None)
+                                base_resp = payload.get("base_resp") or {}
+                                code = base_resp.get("status_code")
+                                message = base_resp.get("status_msg", "unknown error")
+                                raise APIStatusError(
+                                    message=f"MiniMax status_code={code}: {message}",
+                                    status_code=402 if code == 1008 else 502,
+                                    request_id=None,
+                                    body=None,
                                 )
                             buffer = ""
                             async for raw_chunk in resp.content.iter_any():
