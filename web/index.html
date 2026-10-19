@@ -295,7 +295,7 @@
 <script src="livekit-client.umd.js"></script>
 <!-- three.js r160+ 不再提供 UMD 版 three.min.js（404），改用 ES module 构建 -->
 <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.min.js';
+    import * as THREE from './vendor/three.module.min.js';
     window.THREE = THREE;
     window.dispatchEvent(new Event('three-ready'));
 </script>
