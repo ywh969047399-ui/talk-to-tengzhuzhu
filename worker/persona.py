@@ -17,7 +17,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 @dataclass
 class PersonaConfig:
-    name: str = "fengge"
+    name: str = "tengzhuzhu"
     skill_dir: Path = field(default_factory=lambda: _PROJECT_ROOT / "docs")
     few_shot_file: Path | None = None
     max_prompt_chars: int = 3000
@@ -34,8 +34,8 @@ class PersonaConfig:
 DEFAULT_CONFIG = PersonaConfig()
 
 PERSONA_REGISTRY: dict[str, PersonaConfig] = {
-    "fengge": DEFAULT_CONFIG,
-    "nana": PersonaConfig(name="nana"),
+    "fengge": PersonaConfig(name="fengge"),
+    "tengzhuzhu": DEFAULT_CONFIG,
 }
 
 
@@ -252,20 +252,21 @@ def _build_fengge_prompt() -> str:
     return "\n".join(parts)
 
 
-def _build_nana_prompt() -> str:
-    """娜娜的精简语音对话人格 prompt。"""
+def _build_tengzhuzhu_prompt() -> str:
+    """滕猪猪的精简语音对话人格 prompt。"""
     parts = [
-        "你叫娜娜，是一位来自马来西亚马六甲的女生。你正在和对方进行自然的实时语音聊天。",
-        "使用第一人称「我」交流，始终保持娜娜这一身份。",
-        "你现在在新加坡工作，是一名硬件工程师；你会用『在新加坡当牛马』来自嘲工作状态。",
-        "你喜欢小狗，喜欢吃冰淇淋和鸡饭。",
-        "你的主人是来自中国的小余哥哥；提到他时自然、亲昵，但不要在无关话题中反复强调这层关系。",
+        "你叫滕猪猪，是福州罗源山大王。你正在和对方进行自然的实时语音聊天。",
+        "使用第一人称「我」交流，始终保持滕猪猪这一身份。",
+        "你最崇拜的人是天才小余哥哥；提到他时自然、亲昵，但不要在无关话题中反复强调这层关系。",
+        "你特别喜欢在晚上吃炸鸡。",
         "没有设定的年龄、家庭和其他经历一律不要编造；被问到时自然地说还没有聊过或不想随便编。",
         "默认使用自然口语中文；对方切换语言时，可以跟随对方使用相同语言。",
-        "回复简短、亲切、像真实通话，通常一到三句话，不列长清单，不说客服腔。",
-        "直接回应对方刚说的内容，可以自然使用「嗯」「对啊」「是吗」等口语，但不要每句重复。",
+        "回复要像日常聊天，随意、直接，不需要客客气气。不用『您好』『请问』『感谢您的提问』这种客气话。",
+        "语气可以带点大大咧咧，偶尔吐槽、开玩笑，像跟熟人打电话一样。",
+        "通常一到三句话，不列长清单，不说客服腔。",
+        "直接回应对方刚说的内容，可以自然使用『嗯』『对啊』『不是吧』『笑死』等口语，但不要每句重复。",
         "不知道的事情就诚实说不知道，不伪造事实、记忆或现实经历。",
-        "除非对方询问身份或背景，否则不要反复强调名字和国籍。",
+        "除非对方询问身份或背景，否则不要反复强调名字和身份。",
     ]
     return "\n".join(parts)
 
@@ -273,16 +274,14 @@ def _build_nana_prompt() -> str:
 def build_system_prompt(persona_name: str | None = None) -> str:
     """拼装最终的 system instruction。
 
-    persona_name 优先级：参数 > 环境变量 PERSONA_NAME > 默认 fengge。
+    persona_name 优先级：参数 > 环境变量 PERSONA_NAME > 默认 tengzhuzhu。
     """
     if persona_name is None:
-        persona_name = os.getenv("PERSONA_NAME", "fengge").strip().lower()
+        persona_name = os.getenv("PERSONA_NAME", "tengzhuzhu").strip().lower()
 
     if persona_name == "fengge":
         return _build_fengge_prompt()
-    if persona_name == "nana":
-        return _build_nana_prompt()
-    return _build_fengge_prompt()
+    return _build_tengzhuzhu_prompt()
 
 
 if __name__ == "__main__":

@@ -1,12 +1,12 @@
-# Talk to Nana
+# Talk to Teng Zhuzhu
 
 [中文版](README.md)
 
 **Real-time voice conversation + voice cloning + persona injection. Engineering latency < 1 second.**
 
-Have a real-time voice chat with Nana's AI persona. It's not ordinary text-to-speech — it is designed to feel like a phone call, with a customized voice and personality.
+Have a real-time voice chat with Teng Zhuzhu's AI persona. It's not ordinary text-to-speech — it is designed to feel like a phone call, with a customized voice and personality.
 
-This project is customized from the Talk to Fengge real-time voice architecture, with Nana as the currently deployed voice and persona. It still supports swapping to other people; see "[Swap to Another Voice and Personality](#swap-to-another-voice-and-personality)" below.
+This project is customized from the Talk to Fengge real-time voice architecture, with Teng Zhuzhu as the currently deployed voice and persona. It still supports swapping to other people; see "[Swap to Another Voice and Personality](#swap-to-another-voice-and-personality)" below.
 
 > [Demo video (56K+ views)](https://x.com/leaf_sanren/status/2069342335268507976)
 
@@ -55,8 +55,8 @@ Switch with one line in `.env.local`:
 ### Easiest Way: Let an AI Coding Assistant Help
 
 ```bash
-git clone https://github.com/ywh969047399-ui/talk-to-nana.git
-cd talk-to-nana
+git clone https://github.com/ywh969047399-ui/talk-to-tengzhuzhu.git
+cd talk-to-tengzhuzhu
 ```
 
 Open this project in any AI coding assistant — [Claude Code](https://claude.ai/code), [Cursor](https://cursor.com/), [Codex](https://openai.com/codex), [Windsurf](https://codeium.com/windsurf), or whatever you use — and ask it to help you set up and run the project.
@@ -199,7 +199,7 @@ Richer source material (chat logs, speech transcripts, social media content, vid
 - [ ] One-click deploy + automated persona distillation (auto-extract material → generate persona)
 - [ ] More persona templates
 
-**Tell me what you want most in [Issues](https://github.com/ywh969047399-ui/talk-to-nana/issues).**
+**Tell me what you want most in [Issues](https://github.com/ywh969047399-ui/talk-to-tengzhuzhu/issues).**
 
 ## Star / Fork / PR
 
@@ -207,7 +207,7 @@ If you find this project interesting, please Star it.
 
 Want to contribute code, new persona templates, or improvements? Fork + PR welcome.
 
-Questions? Open an [Issue](https://github.com/ywh969047399-ui/talk-to-nana/issues).
+Questions? Open an [Issue](https://github.com/ywh969047399-ui/talk-to-tengzhuzhu/issues).
 
 Want to learn more, exchange ideas, or explore collaboration:
 

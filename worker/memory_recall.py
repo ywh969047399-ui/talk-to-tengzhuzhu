@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 # 阶段 28: 默认走 .env.local 里的 OPENVIKING_DATA_DIR，与 agent.py 保持一致
-_persona_for_memory = os.getenv("PERSONA_NAME", "fengge").strip().lower()
+_persona_for_memory = os.getenv("PERSONA_NAME", "tengzhuzhu").strip().lower()
 _project_root = Path(__file__).resolve().parent.parent
 _default_data_dir = str(_project_root / "data" / "openviking" / "viking" / "default")
 DEFAULT_DATA_DIR = Path(os.getenv("OPENVIKING_DATA_DIR", _default_data_dir))

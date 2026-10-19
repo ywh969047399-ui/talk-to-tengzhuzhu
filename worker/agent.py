@@ -195,7 +195,7 @@ MOSS_TTS_URL = os.getenv("MOSS_TTS_URL", "http://127.0.0.1:18083/v1/audio/speech
 MOSS_VOICE_PROFILE = os.getenv("MOSS_VOICE_PROFILE", "ye-local").strip()
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", "cartesia").strip().lower()  # 阶段 23：cartesia | minimax | moss
 MEMORY_SESSION_PREFIX = os.getenv("MEMORY_SESSION_PREFIX", "dev3-pipeline")
-_persona_for_memory = os.getenv("PERSONA_NAME", "fengge").strip().lower()
+_persona_for_memory = os.getenv("PERSONA_NAME", "tengzhuzhu").strip().lower()
 _project_root = Path(__file__).resolve().parent.parent
 _default_data_dir = str(_project_root / "data" / "openviking" / "viking" / "default")
 OPENVIKING_DATA_DIR = Path(os.getenv("OPENVIKING_DATA_DIR", _default_data_dir))
@@ -657,7 +657,7 @@ async def entrypoint(ctx: JobContext) -> None:
         await startup_memory.close()
         recorder = None
 
-    persona_name = os.getenv("PERSONA_NAME", "yehuiyu").strip().lower()
+    persona_name = os.getenv("PERSONA_NAME", "tengzhuzhu").strip().lower()
     instructions = build_system_prompt(persona_name)
     if AGENT_PROMPT:
         instructions = f"{instructions}\n\n## 运行时补充要求\n{AGENT_PROMPT}"
@@ -668,7 +668,7 @@ async def entrypoint(ctx: JobContext) -> None:
     if memory_block:
         memory_owner = {
             "fengge": "峰哥",
-            "nana": "娜娜",
+            "tengzhuzhu": "滕猪猪",
             "yehuiyu": "叶会羽",
         }.get(persona_name, persona_name)
         instructions = (
@@ -754,6 +754,11 @@ async def entrypoint(ctx: JobContext) -> None:
             asyncio.create_task(recorder.finalize())
 
     await session.start(agent=Dev3Agent(instructions), room=ctx.room)
+
+    # Dispatch can reach the agent before the browser joins the room. Wait for
+    # the listener so the short connection acknowledgement is not spoken away.
+    await ctx.wait_for_participant()
+    session.say("我在，想聊什么？", allow_interruptions=True)
 
 
 def main() -> None:
